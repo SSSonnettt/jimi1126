@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ScrollAnimate } from "@/components/shared/scroll-animate";
-import { Github, Mail } from "lucide-react";
+import { ExternalLink, Mail } from "lucide-react";
 import Link from "next/link";
 
 const skills = ["TypeScript", "Vue 3", "React", "Next.js", "Nuxt", "Node.js", "Tailwind CSS", "Vite", "Webpack", "GSAP", "Three.js", "Git"];
@@ -68,7 +68,7 @@ export default function AboutPage() {
                 <h2 className="text-center text-lg font-semibold">社交媒体</h2>
                 <div className="flex justify-center gap-2">
                   <a href="https://github.com/Jimi1126" target="_blank" rel="noopener noreferrer">
-                    <Github className="h-4 w-4" />
+                    <ExternalLink className="h-4 w-4" />
                   </a>
                   <a href="mailto:jimi1126_mid@163.com">
                     <Mail className="h-4 w-4" />

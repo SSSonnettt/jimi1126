@@ -7,10 +7,37 @@ export interface BlogMeta {
   description: string;
   date: string;
   tags: string[];
-  format: "mdx" | "html";
+  format: "mdx" | "html" | "md";
 }
 
 const blogDir = path.join(process.cwd(), "content", "blog");
+
+function parseYamlFrontmatter(content: string): Record<string, string> {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return {};
+  const result: Record<string, string> = {};
+  for (const line of match[1].split("\n")) {
+    const kv = line.match(/^(\w+)\s*:\s*['"]?(.*?)['"]?\s*$/);
+    if (kv) result[kv[1]] = kv[2];
+  }
+  return result;
+}
+
+function extractMdMetadata(
+  content: string,
+  slug: string
+): Omit<BlogMeta, "format"> | null {
+  const fm = parseYamlFrontmatter(content);
+  if (!fm.title) return null;
+
+  return {
+    slug,
+    title: fm.title,
+    description: fm.description || "",
+    date: fm.published || fm.date || "",
+    tags: fm.keywords ? fm.keywords.split(",").map((t) => t.trim()).filter(Boolean) : [],
+  };
+}
 
 function extractMdxMetadata(
   content: string,
@@ -75,26 +102,24 @@ export async function getBlogPosts(): Promise<BlogMeta[]> {
     const posts: BlogMeta[] = [];
 
     for (const file of files) {
+      if (file.startsWith(".")) continue;
+      const content = await fs.readFile(
+        path.join(blogDir, file),
+        "utf-8"
+      );
+
       if (file.endsWith(".mdx")) {
         const slug = file.replace(/\.mdx$/, "");
-        const content = await fs.readFile(
-          path.join(blogDir, file),
-          "utf-8"
-        );
         const meta = extractMdxMetadata(content, slug);
-        if (meta) {
-          posts.push({ ...meta, format: "mdx" });
-        }
+        if (meta) posts.push({ ...meta, format: "mdx" });
+      } else if (file.endsWith(".md")) {
+        const slug = file.replace(/\.md$/, "");
+        const meta = extractMdMetadata(content, slug);
+        if (meta) posts.push({ ...meta, format: "md" });
       } else if (file.endsWith(".html")) {
         const slug = file.replace(/\.html$/, "");
-        const content = await fs.readFile(
-          path.join(blogDir, file),
-          "utf-8"
-        );
         const meta = extractHtmlMetadata(content, slug);
-        if (meta) {
-          posts.push({ ...meta, format: "html" });
-        }
+        if (meta) posts.push({ ...meta, format: "html" });
       }
     }
 

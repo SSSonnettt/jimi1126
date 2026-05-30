@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "JIMI1126", template: "%s | JIMI1126" },
+  title: { default: "Sonnet", template: "%s | Sonnet" },
   description: "前端开发工程师 · 系统构建者",
 };
 

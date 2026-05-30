@@ -15,7 +15,7 @@ export function NavBar() {
           href="/"
           className="text-[12px] font-normal tracking-[0.15em] text-foreground"
         >
-          JIMI1126
+          Sonnet
         </Link>
         <div className="flex items-center gap-5">
           {links.map((link) => (

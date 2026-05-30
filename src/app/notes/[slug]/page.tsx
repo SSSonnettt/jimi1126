@@ -60,6 +60,8 @@ export default async function BlogPostPage({
         </header>
         {post.format === "html" ? (
           <HtmlContent slug={slug} />
+        ) : post.format === "md" ? (
+          <MdContent slug={slug} />
         ) : (
           <MdxContent slug={slug} />
         )}
@@ -74,6 +76,24 @@ async function MdxContent({ slug }: { slug: string }) {
   try {
     const raw = await fs.readFile(filePath, "utf-8");
     const evaluated = await evaluate(raw, {
+      ...runtime,
+      baseUrl: import.meta.url,
+    });
+    PostContent = evaluated.default;
+  } catch {
+    notFound();
+  }
+  return <PostContent />;
+}
+
+async function MdContent({ slug }: { slug: string }) {
+  const filePath = path.join(blogDir, `${slug}.md`);
+  let PostContent: React.ComponentType;
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    // Strip YAML frontmatter
+    const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
+    const evaluated = await evaluate(body, {
       ...runtime,
       baseUrl: import.meta.url,
     });

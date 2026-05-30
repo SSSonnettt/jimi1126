@@ -36,19 +36,6 @@ export default async function BlogPostPage({
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
-  const filePath = path.join(blogDir, `${slug}.mdx`);
-  let PostContent: React.ComponentType;
-  try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    const evaluated = await evaluate(raw, {
-      ...runtime,
-      baseUrl: import.meta.url,
-    });
-    PostContent = evaluated.default;
-  } catch {
-    notFound();
-  }
-
   return (
     <div className="mx-auto max-w-[720px] px-4 md:px-8 py-20">
       <Link
@@ -71,10 +58,57 @@ export default async function BlogPostPage({
             ))}
           </div>
         </header>
-        <div>
-          <PostContent />
-        </div>
+        {post.format === "html" ? (
+          <HtmlContent slug={slug} />
+        ) : (
+          <MdxContent slug={slug} />
+        )}
       </article>
     </div>
+  );
+}
+
+async function MdxContent({ slug }: { slug: string }) {
+  const filePath = path.join(blogDir, `${slug}.mdx`);
+  let PostContent: React.ComponentType;
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    const evaluated = await evaluate(raw, {
+      ...runtime,
+      baseUrl: import.meta.url,
+    });
+    PostContent = evaluated.default;
+  } catch {
+    notFound();
+  }
+  return <PostContent />;
+}
+
+async function HtmlContent({ slug }: { slug: string }) {
+  const filePath = path.join(blogDir, `${slug}.html`);
+  let html: string;
+  try {
+    html = await fs.readFile(filePath, "utf-8");
+  } catch {
+    notFound();
+  }
+
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  const content = bodyMatch ? bodyMatch[1] : html;
+
+  return (
+    <div
+      className="
+        prose-headings:font-normal prose-headings:text-foreground prose-headings:tracking-[-0.02em]
+        prose-p:text-fg-secondary prose-p:leading-[1.7]
+        prose-a:text-fg-secondary prose-a:underline prose-a:hover:text-foreground
+        prose-code:bg-surface prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[13px] prose-code:font-mono
+        prose-pre:bg-surface prose-pre:text-[13px]
+        prose-li:text-fg-secondary prose-li:leading-[1.7]
+        prose-blockquote:border-l prose-blockquote:border-border prose-blockquote:text-fg-tertiary
+        [&_img]:max-w-full
+      "
+      dangerouslySetInnerHTML={{ __html: content }}
+    />
   );
 }

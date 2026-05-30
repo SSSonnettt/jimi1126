@@ -6,7 +6,7 @@ export default async function NotesPage() {
   const posts = await getBlogPosts();
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 md:px-8 py-20">
+    <div className="mx-auto max-w-[960px] px-6 md:px-12 py-24">
       <ScrollAnimate>
         <p className="text-[10px] tracking-[0.2em] text-fg-tertiary mb-2">
           NOTES

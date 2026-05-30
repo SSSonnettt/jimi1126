@@ -77,6 +77,7 @@ async function MdxContent({ slug }: { slug: string }) {
     const raw = await fs.readFile(filePath, "utf-8");
     const evaluated = await evaluate(raw, {
       ...runtime,
+      development: false,
       baseUrl: import.meta.url,
     });
     PostContent = evaluated.default;
@@ -91,10 +92,10 @@ async function MdContent({ slug }: { slug: string }) {
   let PostContent: React.ComponentType;
   try {
     const raw = await fs.readFile(filePath, "utf-8");
-    // Strip YAML frontmatter
     const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
     const evaluated = await evaluate(body, {
       ...runtime,
+      development: false,
       baseUrl: import.meta.url,
     });
     PostContent = evaluated.default;

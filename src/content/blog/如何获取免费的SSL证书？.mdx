@@ -1,6 +1,8 @@
 export const metadata = {
   title: "如何获取免费的SSL证书？",
   description: "最近在自建网站，在申请下来域名后，想要支持https，所以需要在服务器部署证书。刚好之前阮一峰的周刊有看到免费SSL证书获取，这不是有思路了？不是买不起，而且免费更有性价比！",
+  date: "2024-03-05",
+  tags: ["自建网站", "SSL证书", "https", "acme.sh", "Buypass", "ZeroSSL", "SSL.com", "Google Public CA"]
 };
 
 ## 前言
@@ -22,9 +24,7 @@ cd acme.sh
 ./acme.sh --install -m email=my@example.com
 ```
 
-::: warning
-将 email=my@example.com换成我们自己的邮箱，避免无法收到上游证书的邮件通知，比如 Let's Encrypt 偶尔会错发证书，然后就会邮件通知你，这时候就需要重新签发一次证书了。
-:::
+> **Warning**: 将 email=my@example.com 换成我们自己的邮箱，避免无法收到上游证书的邮件通知，比如 Let's Encrypt 偶尔会错发证书，然后就会邮件通知你，这时候就需要重新签发一次证书了。
 
 ### 初始化
 
@@ -84,18 +84,14 @@ acme.sh 实现了 acme 协议支持的所有验证协议. 一般有两种方式�
 acme.sh --issue -d mydomain.com --nginx
 ```
 
-::: tip
-将 mydomain.com 换成我们的服务器的域名，服务器如果是 nginx 服务器与 apache 服务器，acme.sh 都可以智能的从配置中自动完成验证, 不需要指定网站根目录。无论是 apache 还是 nginx 模式, acme.sh 在完成验证之后, 会恢复到之前的状态, 都不会私自更改你本身的配置. 好处是你不用担心配置被搞坏, 也有一个缺点, 你需要自己配置 ssl 的配置, 否则只能成功生成证书, 你的网站还是无法访问 https. 但是为了安全, 你还是自己手动改配置吧.
-:::
+> **Tip**: 将 mydomain.com 换成我们的服务器的域名，服务器如果是 nginx 服务器与 apache 服务器，acme.sh 都可以智能的从配置中自动完成验证, 不需要指定网站根目录。无论是 apache 还是 nginx 模式, acme.sh 在完成验证之后, 会恢复到之前的状态, 都不会私自更改你本身的配置. 好处是你不用担心配置被搞坏, 也有一个缺点, 你需要自己配置 ssl 的配置, 否则只能成功生成证书, 你的网站还是无法访问 https. 但是为了安全, 你还是自己手动改配置吧.
 但出现控制台出现下图文件，证书就生成了。
 ![0ff5732d5cdb375c92f8472e614e88e.png](/file/img/ut-XB--2Jt2Y9fZrAN52e.png)
 
 ### copy/安装 证书
 
 前面证书生成以后, 接下来需要把证书 copy 到真正需要用它的地方.
-::: warning
-注意, 默认生成的证书都放在安装目录下: ~/.acme.sh/, 请不要直接使用此目录下的文件, 例如: 不要直接让 nginx/apache 的配置文件使用这下面的文件. 这里面的文件都是内部使用, 而且目录结构可能会变化.
-:::
+> **Warning**: 注意, 默认生成的证书都放在安装目录下: ~/.acme.sh/, 请不要直接使用此目录下的文件, 例如: 不要直接让 nginx/apache 的配置文件使用这下面的文件. 这里面的文件都是内部使用, 而且目录结构可能会变化.
 正确的使用方法是使用 --install-cert 命令,并指定目标位置, 然后证书文件会被 copy 到相应的位置, 例如:
 Apache example:
 
@@ -187,12 +183,8 @@ ssl_trusted_certificate /www/server/nginx/ssl/example.com.ca.crt;
   }
 ```
 
-::: warning
-第 9 到 11 行是证书路径配置
-我们需要检查一下 443 端口是否放行，如果是 ECS 服务器需要配置安全组
-:::
+> **Warning**: 第 9 到 11 行是证书路径配置。我们需要检查一下 443 端口是否放行，如果是 ECS 服务器需要配置安全组。
 
 ## 验证
 
 最后，我们可以通过在线的 SSL 验证工具[ssllabs.com](https://www.ssllabs.com/ssltest/index.html)验证我们配置是否正常。如果显示是绿色，那么表明我们拥有了一台支持 https 协议的服务器了。
-

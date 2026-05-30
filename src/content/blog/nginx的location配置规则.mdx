@@ -1,6 +1,8 @@
 export const metadata = {
   title: "nginx的location配置规则",
   description: "nginx的location有哪些规则？",
+  date: "2023-11-05",
+  tags: ["Nginx", "Nginx HTTP", "Nginx location"]
 };
 
 ## 说明
@@ -14,12 +16,11 @@ location 的 location 有哪些规则？
 5. location /uri，不带任何修饰符，也表示前缀匹配，但是在正则匹配之后；
 6. location /，通用匹配，任何未匹配到其它 location 的请求都会匹配到，相当于 switch 中的 default。
 
-::: warning
-
-- 匹配的顺序是先匹配普通字符串，然后再匹配正则表达式；
-- 一般情况下，匹配成功了普通字符串 location 后还会进行正则表达式 location 匹配；
-- 优先级：(location =) > (location 完整路径) > (location ^~ 路径) > (location ~,~\* 正则顺序) > (location /uri 部分起始路径) > (/)
-  :::
+> **Warning**:
+>
+> - 匹配的顺序是先匹配普通字符串，然后再匹配正则表达式；
+> - 一般情况下，匹配成功了普通字符串 location 后还会进行正则表达式 location 匹配；
+> - 优先级：(location =) > (location 完整路径) > (location ^~ 路径) > (location ~,~\* 正则顺序) > (location /uri 部分起始路径) > (/)
 
 ## 示例
 
@@ -145,4 +146,3 @@ http://baidu.com/abc?p1
 http://baidu.com/abc/
 http://baidu.com/bcde
 ```
-

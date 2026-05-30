@@ -5,7 +5,7 @@ import { useEffect, useCallback } from "react";
 export function HeadingCopy() {
   const handleClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    const heading = target.closest("h1, h2, h3, h4, h5, h6");
+    const heading = target.closest("h1, h2, h3, h4, h5, h6") as HTMLElement | null;
     if (!heading || !heading.id) return;
 
     const url = new URL(window.location.href);

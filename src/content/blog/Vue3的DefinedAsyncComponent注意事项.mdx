@@ -1,6 +1,8 @@
 export const metadata = {
   title: "Vue3的definedAsyncComponent注意事项",
   description: "最近使用 Vue3 的 definedAsyncComponent 宏出现错误：TypeError: Failed to fetch dynamically imported module: http://localhost:4173/pages/drop-components/resume/Blank.vue",
+  date: "2024-05-05",
+  tags: ["definedAsyncComponent", "加载异步组件", "dynamic-import-vars", "import.meta.glob"]
 };
 
 ## 问题
@@ -54,4 +56,3 @@ import(`../components/${dir}/${name}.vue`);
   const AsyncComp = modules[`../components/${dir}/${name}.vue`]()
   ...
 ```
-

@@ -1,0 +1,19 @@
+# OpenSpec Project Configuration
+# Generated: 2026-05-30
+
+context: |
+  Sonnet (十四行诗) — personal website for a frontend engineer.
+  INTJ-A aesthetic: cold, monochrome, typography-driven, architecture-first.
+  Built with Next.js 16 (App Router), React 19, Tailwind CSS v4, MDX.
+
+  Key constraints:
+  - Pure monochrome palette (#0a0a0a base), no accent colors
+  - Chinese primary language, English for labels/tags
+  - Minimalist density-narrative homepage
+  - 19 blog posts migrated from old Vue site
+
+rules:
+  prefer-small-files: true
+  no-barrel-exports: false
+  layout-uses-max-width-container: true
+  max-width: 720px (content) / 960px (list)

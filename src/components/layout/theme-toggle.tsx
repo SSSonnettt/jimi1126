@@ -20,7 +20,7 @@ export function ThemeToggle() {
   };
 
   const label: Record<string, string> = {
-    system: "auto",
+    system: "system",
     light: "light",
     dark: "dark",
   };

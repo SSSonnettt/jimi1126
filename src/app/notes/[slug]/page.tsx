@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import { promises as fs } from "fs";
 import path from "path";
 import { getBlogPosts } from "@/lib/blog";
+import { TOC } from "@/components/shared/toc";
+import { HeadingCopy } from "@/components/shared/heading-copy";
 
 export async function generateStaticParams() {
   const posts = await getBlogPosts();
@@ -17,7 +19,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const rawSlug = (await params).slug;
+  const slug = decodeURIComponent(rawSlug);
   const posts = await getBlogPosts();
   const post = posts.find((p) => p.slug === slug);
   if (!post) return { title: "Not Found" };
@@ -29,36 +32,45 @@ export default async function BlogPostPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const rawSlug = (await params).slug;
+  const slug = decodeURIComponent(rawSlug);
   const posts = await getBlogPosts();
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 md:px-8 py-20">
-      <Link
-        href="/notes"
-        className="inline-flex items-center gap-1.5 text-[12px] text-fg-tertiary hover:text-fg-secondary mb-12"
-      >
-        <ArrowLeft className="h-3 w-3" /> 返回笔记
-      </Link>
-      <article>
-        <header className="mb-8">
-          <h1 className="text-[28px] md:text-[36px] font-normal tracking-[-0.02em] leading-[1.15] text-foreground">
-            {post.title}
-          </h1>
-          <div className="mt-4 flex items-center gap-3">
-            <time className="text-[12px] text-fg-tertiary">{post.date}</time>
-            {post.tags.map((tag) => (
-              <span key={tag} className="text-[11px] text-fg-inactive">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </header>
-        <RenderContent slug={slug} format={post.format} />
-      </article>
-    </div>
+    <>
+      <HeadingCopy />
+      <div className="mx-auto max-w-[1080px] px-4 md:px-8">
+        <div className="flex gap-12">
+          <article className="flex-1 min-w-0 max-w-[720px] py-20">
+            <Link
+              href="/notes"
+              className="inline-flex items-center gap-1.5 text-[12px] text-fg-tertiary hover:text-fg-secondary mb-12"
+            >
+              <ArrowLeft className="h-3 w-3" /> 返回笔记
+            </Link>
+            <header className="mb-8">
+              <h1 className="text-[28px] md:text-[36px] font-normal tracking-[-0.02em] leading-[1.15] text-foreground">
+                {post.title}
+              </h1>
+              <div className="mt-4 flex items-center gap-3">
+                <time className="text-[12px] text-fg-tertiary">{post.date}</time>
+                {post.tags.map((tag) => (
+                  <span key={tag} className="text-[11px] text-fg-inactive">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </header>
+            <RenderContent slug={slug} format={post.format} />
+          </article>
+          <aside className="hidden lg:block w-[180px] shrink-0 pt-20">
+            <TOC />
+          </aside>
+        </div>
+      </div>
+    </>
   );
 }
 

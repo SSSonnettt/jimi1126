@@ -58,5 +58,46 @@ export function useMDXComponents(): MDXComponents {
         {children}
       </blockquote>
     ),
+    img: ({ src, alt }) => (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={alt || ""}
+        loading="lazy"
+        className="my-6 w-full max-w-[720px] h-auto"
+      />
+    ),
+    table: ({ children }) => (
+      <div className="my-4 overflow-x-auto">
+        <table className="w-full text-[14px] text-fg-secondary border-collapse">
+          {children}
+        </table>
+      </div>
+    ),
+    thead: ({ children }) => (
+      <thead className="border-b border-border">{children}</thead>
+    ),
+    tbody: ({ children }) => <tbody>{children}</tbody>,
+    tr: ({ children }) => <tr className="border-b border-border">{children}</tr>,
+    th: ({ children }) => (
+      <th className="px-3 py-2 text-left font-normal text-fg-tertiary text-[12px]">
+        {children}
+      </th>
+    ),
+    td: ({ children }) => (
+      <td className="px-3 py-2">{children}</td>
+    ),
+    del: ({ children }) => (
+      <del className="opacity-50">{children}</del>
+    ),
+    input: ({ type, checked, disabled }) => (
+      <input
+        type={type}
+        checked={checked}
+        disabled={disabled}
+        className="mr-2 accent-foreground"
+        readOnly
+      />
+    ),
   };
 }

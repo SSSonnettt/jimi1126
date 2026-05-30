@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/layout/theme-provider";
 import { NavBar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import "./globals.css";
@@ -17,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: { default: "JIMI1126", template: "%s | JIMI1126" },
-  description: "前端开发工程师 · 软件开发与咨询服务 · 开源建设者",
+  description: "前端开发工程师 · 系统构建者",
 };
 
 export default function RootLayout({
@@ -27,14 +26,11 @@ export default function RootLayout({
     <html
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable}`}
-      suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col bg-background text-foreground antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NavBar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </ThemeProvider>
+        <NavBar />
+        <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );

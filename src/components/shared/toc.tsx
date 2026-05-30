@@ -19,10 +19,15 @@ export function TOC() {
     if (headings.length < 2) return;
 
     setItems(
-      headings.map((h) => ({
-        id: h.id,
-        text: h.textContent || "",
-      }))
+      headings
+        .map((h) => ({
+          id: h.id,
+          text: h.textContent || "",
+        }))
+        .filter((item, i, arr) => {
+          const firstIdx = arr.findIndex((x) => x.id === item.id);
+          return firstIdx === i && item.id !== "";
+        })
     );
 
     const observer = new IntersectionObserver(

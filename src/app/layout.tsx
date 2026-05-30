@@ -30,7 +30,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col bg-background text-foreground antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <NavBar />
           <main className="flex-1">{children}</main>
           <Footer />

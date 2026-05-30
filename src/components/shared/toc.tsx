@@ -18,17 +18,20 @@ export function TOC() {
 
     if (headings.length < 2) return;
 
-    setItems(
-      headings
-        .map((h) => ({
-          id: h.id,
-          text: h.textContent || "",
-        }))
-        .filter((item, i, arr) => {
-          const firstIdx = arr.findIndex((x) => x.id === item.id);
-          return firstIdx === i && item.id !== "";
-        })
-    );
+    const seen = new Map<string, number>();
+    const uniqueItems: TocItem[] = [];
+
+    for (const h of headings) {
+      const baseId = h.id || h.textContent?.replace(/\s+/g, "-").toLowerCase() || "section";
+      const count = seen.get(baseId) ?? 0;
+      seen.set(baseId, count + 1);
+      const domId = count === 0 ? baseId : `${baseId}-${count}`;
+      // Apply unique id back to the DOM element so scrollIntoView can find it
+      if (domId !== h.id) h.id = domId;
+      uniqueItems.push({ id: domId, text: h.textContent || "" });
+    }
+
+    setItems(uniqueItems);
 
     const observer = new IntersectionObserver(
       (entries) => {

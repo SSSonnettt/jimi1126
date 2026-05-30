@@ -1,0 +1,6 @@
+{
+  "$schema": "https://raw.githubusercontent.com/opennextjs/opennextjs-cloudflare/main/packages/cloudflare/wrangler-config-schema.json",
+  "name": "jimi1126",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-01-01"
+}

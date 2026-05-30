@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const links = [
   { href: "/work", label: "WORK" },
@@ -26,6 +27,7 @@ export function NavBar() {
               {link.label}
             </Link>
           ))}
+          <ThemeToggle />
         </div>
       </nav>
     </header>

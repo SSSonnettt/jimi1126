@@ -1,50 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf9;
-  --foreground: #3d3b36;
-  --card: #ffffff;
-  --card-foreground: #3d3b36;
-  --primary: #e8a630;
-  --primary-foreground: #ffffff;
-  --secondary: #f5f4f0;
-  --secondary-foreground: #3d3b36;
-  --muted: #f5f4f0;
-  --muted-foreground: #78756e;
-  --border: #d4d0c8;
-  --ring: #e8a630;
-  --radius: 0.5rem;
-}
-
-.dark {
-  --background: #1c1b18;
-  --foreground: #f5f4f0;
-  --card: #2d2b26;
-  --card-foreground: #f5f4f0;
-  --primary: #e8a630;
-  --primary-foreground: #1c1b18;
-  --secondary: #2d2b26;
-  --secondary-foreground: #f5f4f0;
-  --muted: #2d2b26;
-  --muted-foreground: #a09b92;
-  --border: #3d3b36;
-  --ring: #e8a630;
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+  --fg-secondary: #888888;
+  --fg-tertiary: #555555;
+  --fg-inactive: #333333;
+  --surface: #0f0f0f;
+  --border: #1a1a1a;
+  --border-hi: #2a2a2a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-tertiary: var(--fg-tertiary);
+  --color-fg-inactive: var(--fg-inactive);
+  --color-surface: var(--surface);
   --color-border: var(--border);
-  --color-ring: var(--ring);
-  --radius: var(--radius);
+  --color-border-hi: var(--border-hi);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -53,5 +28,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

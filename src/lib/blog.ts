@@ -10,7 +10,7 @@ export interface BlogMeta {
   format: "mdx" | "html";
 }
 
-const blogDir = path.join(process.cwd(), "content", "blog");
+const blogDir = path.join(process.cwd(), "src", "content", "blog");
 
 function extractMdxMetadata(
   content: string,

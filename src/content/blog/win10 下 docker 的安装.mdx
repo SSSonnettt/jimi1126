@@ -80,7 +80,7 @@ wsl --shutdown
 wsl --export Ubuntu-22.04 D:\Ubuntu-22.04.tar
 ```
 
-> 注：wsl --export <Distribution Name> <FileName>
+> 注：wsl --export &lt;Distribution Name&gt; &lt;FileName&gt;
 
 - 第三步，取消 Ubuntu 的注册
 
@@ -94,7 +94,7 @@ wsl --unregister Ubuntu-22.04
 wsl --import Ubuntu-22.04 D:\Ubuntu-wsl D:\Ubuntu-22.04.tar
 ```
 
-> 注意：wsl --import <Distribution Name> <InstallLocation> <FileName> <Distribution Name>，<InstallLocation>不能是 Program Files 文件夹，不然会报错
+> 注意：wsl --import &lt;Distribution Name&gt; &lt;InstallLocation&gt; &lt;FileName&gt; &lt;Distribution Name&gt;，&lt;InstallLocation&gt;不能是 Program Files 文件夹，不然会报错
 
 - 第五步，修改默认用户
 
@@ -102,7 +102,7 @@ wsl --import Ubuntu-22.04 D:\Ubuntu-wsl D:\Ubuntu-22.04.tar
 Ubuntu2204 config --default-user xxx
 ```
 
-> <DistributionName> config --default-user <Username>
+> &lt;DistributionName&gt; config --default-user &lt;Username&gt;
 
 - 第六步，启动 wsl
 

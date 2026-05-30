@@ -3,16 +3,14 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { promises as fs } from "fs";
 import path from "path";
-import { compile, run } from "@mdx-js/mdx";
-import * as runtime from "react/jsx-runtime";
 import { getBlogPosts } from "@/lib/blog";
-
-const blogDir = path.join(process.cwd(), "content", "blog");
 
 export async function generateStaticParams() {
   const posts = await getBlogPosts();
   return posts.map((post) => ({ slug: post.slug }));
 }
+
+export const dynamicParams = false;
 
 export async function generateMetadata({
   params,
@@ -36,32 +34,6 @@ export default async function BlogPostPage({
   const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
-  const ext = post.format === "html" ? ".html" : ".mdx";
-  const filePath = path.join(blogDir, `${slug}${ext}`);
-
-  let content: React.ReactNode;
-  try {
-    const raw = await fs.readFile(filePath, "utf-8");
-
-    if (post.format === "html") {
-      const bodyMatch = raw.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-      content = (
-        <div
-          className="prose-p:text-fg-secondary prose-p:leading-[1.7] prose-a:text-fg-secondary [&_img]:max-w-full"
-          dangerouslySetInnerHTML={{
-            __html: bodyMatch ? bodyMatch[1] : raw,
-          }}
-        />
-      );
-    } else {
-      const compiled = await compile(raw, { development: false });
-      const { default: PostContent } = await run(compiled, runtime);
-      content = <PostContent />;
-    }
-  } catch {
-    notFound();
-  }
-
   return (
     <div className="mx-auto max-w-[720px] px-4 md:px-8 py-20">
       <Link
@@ -84,8 +56,35 @@ export default async function BlogPostPage({
             ))}
           </div>
         </header>
-        {content}
+        <RenderContent slug={slug} format={post.format} />
       </article>
     </div>
   );
+}
+
+async function RenderContent({
+  slug,
+  format,
+}: {
+  slug: string;
+  format: "mdx" | "html";
+}) {
+  if (format === "html") {
+    const filePath = path.join(process.cwd(), "src", "content", "blog", `${slug}.html`);
+    const html = await fs.readFile(filePath, "utf-8");
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    return (
+      <div
+        className="prose-p:text-fg-secondary prose-p:leading-[1.7] prose-a:text-fg-secondary [&_img]:max-w-full"
+        dangerouslySetInnerHTML={{
+          __html: bodyMatch ? bodyMatch[1] : html,
+        }}
+      />
+    );
+  }
+
+  const { default: PostContent } = await import(
+    `@/content/blog/${slug}.mdx`
+  );
+  return <PostContent />;
 }

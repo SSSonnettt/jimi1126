@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-[960px] px-6 md:px-12">
       {/* Positioning */}
-      <section className="min-h-screen flex items-center border-b border-border">
+      <section className="min-h-screen flex items-center">
         <div className="py-24 w-full">
           <ScrollAnimate>
             <p className="text-[10px] md:text-[11px] tracking-[0.2em] text-fg-tertiary mb-6">
@@ -20,7 +20,7 @@ export default function Home() {
               八年经验，跨越数据可视化、企业中后台、低代码平台。
               关注架构而非堆砌，追求约束与效率的平衡。
             </p>
-            <div className="flex gap-12 border-t border-border pt-8">
+            <div className="flex gap-12 pt-8">
               <div>
                 <span className="block text-[36px] md:text-[44px] font-light text-foreground">8+</span>
                 <span className="text-[10px] md:text-[11px] tracking-[0.15em] text-fg-tertiary">年经验</span>
@@ -39,7 +39,7 @@ export default function Home() {
       </section>
 
       {/* Capability */}
-      <section className="min-h-screen flex items-center border-b border-border">
+      <section className="min-h-screen flex items-center">
         <div className="py-24 w-full">
           <ScrollAnimate delay={0.05}>
             <p className="text-[10px] md:text-[11px] tracking-[0.2em] text-fg-tertiary mb-8">
@@ -76,7 +76,7 @@ export default function Home() {
       </section>
 
       {/* Selected Work */}
-      <section className="min-h-screen flex items-center border-b border-border">
+      <section className="min-h-screen flex items-center">
         <div className="py-24 w-full">
           <ScrollAnimate delay={0.1}>
             <div className="flex items-baseline justify-between mb-10">

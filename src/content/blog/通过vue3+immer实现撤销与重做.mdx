@@ -1,33 +1,107 @@
 export const metadata = {
-  title: "通过vue3+immer实现撤销与重做",
-  description: "最近自己琢磨一个低代码平台，在编写页面编辑器时，为实现撤销与重做引入immer，这里记录一下实现过程。",
+  title: "Vue3 + immer 实现撤销与重做",
+  description: "低代码编辑器的撤销重做实现：快照策略 vs 补丁策略，双栈管理版本的完整代码",
   date: "2024-04-14",
-  tags: ["低代码平台", "页面编辑器", "immer", "快照", "补丁"]
+  tags: ["Vue3", "immer", "撤销重做", "低代码"]
 };
 
-## 前言
+## 背景
 
-最近自己琢磨一个低代码平台，在编写页面编辑器时，为实现撤销与重做引入 immer，这里记录一下实现过程。
+页面编辑器的本质是维护一个 JSON 配置对象。用户在画布上拖拽、删除、修改属性，最终都映射为对这个 JSON 的变更。撤销/重做的本质，就是对这个 JSON 做版本管理。
 
-## 为什么 immer
+## 两种策略
 
-### 原理
+**快照策略**：每次修改前全量复制一份旧状态存入历史。撤销时从历史中取出上一个版本直接替换当前状态。优点是实现简单、状态一致性有保证；缺点是占内存，大对象下拷贝开销不可忽视。
 
-一般地，页面编辑器本质就是在维护与解析一个 JSON 配置文件，然后再根据配置文件进行生成代码或生成页面等操作。因此编辑器的撤销与重做就是对配置文件版本管理，每次配置文件完成修改时都会生成一个新版本。
+**补丁策略**：记录每处变更的逆操作（补丁），撤销时逆序应用补丁。优点是省内存；缺点是实现复杂——你必须保证每个操作的逆操作都正确，一个补丁写错，整个状态就崩了。
 
-### 实现
+对于大多数场景，快照策略足够。现代 JS 引擎下 JSON 序列化/反序列化的开销远小于补丁策略引入的 bug 成本。配合 immer 的结构共享，内存问题也能控制。
 
-1. 快照
+## 实现：快照 + 双栈 + immer
 
-在每次修改前将状态全量复制为一个旧版本，放入版本管理。
+双栈模型：一个撤销栈、一个重做栈。发生变更时，旧版本压入撤销栈，清空重做栈。撤销时当前版本入重做栈，撤销栈顶出栈。重做时反向操作。
 
-版本管理可以通过单链表，或双堆栈实现。
+```ts
+// useHistory.ts
+import { ref, shallowRef, computed } from "vue";
+import { produce, type Draft } from "immer";
 
-- 单链表：通过维护一个版本指针指向当前版本。当发生修改时，清空链表中当前版本指针之后的版本，并将生成的新版本添加到链尾，指针指向链尾。当执行撤销时，指针前移，执行重做时，指针后移。
-- 双堆栈：维护一个撤销栈和一个重做栈，当发生修改时，将旧版本压入撤销栈，并清空重做栈。执行撤销时，将当前版本压入重做栈，从撤销栈中弹出置顶作为当前版本。而执行重做时，将当前版本压入撤销栈，从重做栈中弹出栈顶作为当前版本。
+interface HistoryState<T> {
+  undoStack: T[];
+  redoStack: T[];
+}
 
-优点：速度快；缺点：占内存；
+export function useHistory<T extends Record<string, unknown>>(
+  initialState: T
+) {
+  const state = ref<T>(initialState);
+  const history = shallowRef<HistoryState<T>>({
+    undoStack: [],
+    redoStack: [],
+  });
 
-2. 补丁
+  // immer produce 返回新对象，旧对象保留在栈中
+  function update(recipe: (draft: Draft<T>) => void) {
+    const prev = state.value;
+    history.value = {
+      undoStack: [prev, ...history.value.undoStack].slice(0, 50), // 限制 50 步
+      redoStack: [],
+    };
+    state.value = produce(prev, recipe);
+  }
 
-在每次修改过程中，将每处修改当做一个补丁，一个版本可以有多个补丁。当进行撤销与重做时就是进行补丁的撤销与重做。
+  function undo() {
+    const { undoStack, redoStack } = history.value;
+    if (undoStack.length === 0) return;
+    history.value = {
+      undoStack: undoStack.slice(1),
+      redoStack: [state.value, ...redoStack],
+    };
+    state.value = undoStack[0];
+  }
+
+  function redo() {
+    const { undoStack, redoStack } = history.value;
+    if (redoStack.length === 0) return;
+    history.value = {
+      undoStack: [state.value, ...undoStack],
+      redoStack: redoStack.slice(1),
+    };
+    state.value = redoStack[0];
+  }
+
+  const canUndo = computed(() => history.value.undoStack.length > 0);
+  const canRedo = computed(() => history.value.redoStack.length > 0);
+
+  return { state, update, undo, redo, canUndo, canRedo };
+}
+```
+
+使用示例：
+
+```ts
+const { state, update, undo, redo, canUndo, canRedo } = useHistory({
+  components: [],
+  selected: null,
+});
+
+// 修改时调用 update 而非直接改 state
+function moveComponent(id: string, x: number, y: number) {
+  update((draft) => {
+    const comp = draft.components.find((c) => c.id === id);
+    if (comp) {
+      comp.x = x;
+      comp.y = y;
+    }
+  });
+}
+```
+
+几个关键决策：
+- 历史步数上限 50 步，防止内存膨胀
+- `shallowRef` 优化：栈数组本身不需要深层响应式
+- immer 的 `produce` 只修改变更路径上的引用，未变部分共享，实际内存开销远小于全量深拷贝
+
+## 小结
+
+撤销/重做不需要过度设计。快照方案配合 immer 在简单性和性能之间取得了平衡点。补丁方案除非在极端内存受限的场景，否则不值得引入。

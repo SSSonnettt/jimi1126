@@ -36,9 +36,19 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: url("https://pub-8be9b98d6f414a619b0cfe3f56023e6f.r2.dev/img/2024/09/640.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-blend-mode: overlay;
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.light body {
+  background-blend-mode: soft-light;
 }

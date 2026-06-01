@@ -1,0 +1,11 @@
+{
+  "name": "sonnet-counter",
+  "main": "index.js",
+  "compatibility_date": "2025-01-01",
+  "kv_namespaces": [
+    {
+      "binding": "COUNTER",
+      "id": "daedcd4aab27449e9c80e9ca0eb157a3"
+    }
+  ]
+}

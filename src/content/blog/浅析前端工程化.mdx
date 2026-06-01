@@ -1,281 +1,148 @@
 export const metadata = {
   title: "浅析前端工程化",
-  description: "为什么一个前端项目会有那么多的配置文件？他们都是干什么用的？",
+  description: "模块化、组件化、规范化、自动化——四个维度拆解前端工程化的实施路径",
   date: "2024-02-27",
-  tags: ["前端工程化", "模块化", "组件化", "规范化", "自动化", "CI/CD", "GitHub Actions"]
+  tags: ["前端工程化", "模块化", "组件化", "规范化", "自动化", "CI/CD"]
 };
 
 ## 前言
 
-为什么一个前端项目会有那么多的配置文件？他们都是干什么用的？
+一个前端项目为什么会有那么多配置文件？ESLint、Prettier、husky、commitlint、GitHub Actions——它们分别解决什么问题，又如何协同工作？
 
-如今前端的能力与日俱增，所面对的业务也日益复杂化和多元化，相随而来的是庞大的代码量、更多人员的协作、要求更高的性能、更复杂的维护等。这就意味着手动进行前端开发将面临越来越大的挑战。
+本文从四个维度拆解前端工程化：模块化、组件化、规范化、自动化，并在最后给出一个可运行的 Vue 项目示例。
 
-于是慢慢兴起前端工程化概念，本文就来谈谈什么是前端工程化，以及如何实施。
+## 四维拆解
 
-## 定义
+**模块化**解决的是代码如何拆分和引用的问题。JS 有 ES Module，CSS 有 scoped 和 CSS Modules，静态资源通过 import 引入。模块化的核心价值不在于"拆"，而在于拆完之后依赖关系清晰、边界明确。
 
-前端工程化是指使用软件工程的方法来规范前端开发流程，包括四部分：模块化、组件化、规范化、自动化。通过在前端开发过程中，将前端开发的流程、工具和规范化，并使用相关技术实现自动化，包括但不限于代码编写、测试、构建、部署等环节，以提高前端开发效率、提高代码质量和可维护性。
+**组件化**是在模块化之上，从 UI 设计层面做拆分。一个 `.vue` 文件封装了模板、逻辑和样式，对外暴露 props 和 events，对内隐藏实现细节。和模块化的区别：模块化面向文件，组件化面向界面。
 
-## 实现
+**规范化**是提前约定的执行标准。编码规范（ESLint + Prettier）、提交规范（commitlint）、目录结构规范——没有规范，工具再多也只是加速制造混乱。
 
-实现前端工程化，就是将前端项目进行模块化、组件化、规范化、自动化。面对这个问题前端社区一直在做努力，已有非常多的优秀框架、工具，如 react、vue、webpack、vite、rollup、typescript、eslint、prettier、commitlint、less、sass 等等。
+**自动化**把编译、测试、部署交给机器。Vite 负责构建，vitest 跑测试，GitHub Actions 串联 CI/CD 流程。自动化的前提是前三步已经做到位——没有模块化和规范化，自动化毫无意义。
 
-## 模块化
+## 示例：Vue 项目工程化实践
 
-在模块化编程中，开发者将程序分解成离散功能块(discrete chunks of functionality)，并称之为模块。每个模块具有比完整程序更小的接触面，使得校验、调试、测试轻而易举。精心编写的模块提供了可靠的抽象和封装界限，使得应用程序中每个模块都具有条理清楚的设计和明确的目的。模块化是一种处理复杂系统分解成为更好的可管理模块的方式，它可以把系统代码划分为一系列职责单一，高度解耦且可替换的模块，系统中某一部分的变化将如何影响其它部分就会变得显而易见，系统的可维护性更加简单易得。而前端模块化又分为 JS 模块化、css 模块化、资源模块化。
-
-1. **js 模块化**：历史上，JavaScript 一直没有模块（module）体系，无法将一个大程序拆分成互相依赖的小文件，再用简单的方法拼装起来。在 ES6 之前，社区制定了一些模块加载方案，最主要的有 CommonJS 和 AMD 两种。前者用于服务器，后者用于浏览器。ES6 出现后，在语言标准的层面上，实现了模块功能，而且实现得相当简单，完全可以取代 CommonJS 和 AMD 规范，成为浏览器和服务器通用的模块解决方案。
-2. **css 模块化**：CSS 模块化的解决方案有很多，可以分为两类：一类是彻底抛弃 CSS，使用 JS 或 JSON 来写样式，如 Radium，jsxstyle 等。优点是能给 CSS 提供 JS 同样强大的模块化能力；缺点是不能利用成熟的 CSS 预处理器（或后处理器） Sass/Less/PostCSS。另一类是依旧使用 CSS，但使用 JS 来管理样式依赖，代表是 CSS Modules。CSS Modules 则是通过 JS 来管理依赖，最大化的结合了 JS 模块化和 CSS 生态，API 简洁到几乎零学习成本。发布时依旧编译出单独的 JS 和 CSS。比如 Vue 中的 style scoped。
-3. **资源模块化**：任何资源都能以模块的形式进行加载，将项目中的字体文件、图片等可以直接通过 JS 做统一的依赖关系处理。
-
-## 组件化
-
-组件是描述了 UI 的一部分，例如按钮或复选框。它既可以提高可维护性，也允许代码重用。多个组件也可以组合成更大的组件。而前端的组件化，其实是对项目进行自上而下的拆分，把通用的、可复用的功能中的模型（Model）、视图（View）和视图模型（ViewModel）以黑盒的形式封装到一个组件中，然后暴露一些开箱即用的函数和属性配置供外部组件调用，实现与业务逻辑的解耦，来达到代码间的高内聚、低耦合，实现功能模块的可配置、可复用、可扩展。除此之外，还可以再由这些组件组合更复杂的组件、页面。
-组件化 ≠ 模块化。模块化是从文件层面上，对代码或资源进行拆分；而组件化是从设计层面上，对用户界面进行拆分。前端组件化更偏向 UI 层面，更多把逻辑放到页面中，使得 UI 元素复用性更高。
-得益于技术的发展，目前三大框架在构建工具（例如 webpack、vite...）的配合下都可以很好的实现组件化。例如 Vue，使用 _.vue 文件就可以把 template、script、style 写在一起，一个 _.vue 文件就是一个组件。而如果不想使用任何框架和构建工具，亦可以通过 Web Components 实现组件化，它是浏览器原生支持的组件化标准。
-
-## 规范化
-
-![](https://r2.jimi1126.cn/img/2024/09/b89f637b2659c9e250d9c8a9e620eeb0.png)
-
-规范化即是提前约定好的执行标准，用于构建健壮、易维护的程序。具体我们可以制定哪些规范呢？我们可以看下软件开发的基本流程是：需求分析、系统设计、编码、测试、部署、维护等，一般地，在我们进行前端开发过程中由我们完成的应该包括设计、编码、测试、部署、维护这几个流程，那么在前端工程化中就应该对这几部分做出规范化。但现实中如果每个流程都按照规范来走，没有工具辅助，那么可能每天我们得花费大量的时间在执行规范上面。所以大部分公司会做出一些取舍，但是大家都不会绕开编码规范。而编码规范不仅仅包括代码编写规范，还应该包括工程目录结构、目录命名、文件命名等规范。并且前端作为多语言项目，那么代码编写规范上，还分 HTML、JS、CSS 等规范。
-
-## 自动化
-
-前端自动化是指前端项目的自动化构建、打包、测试及部署等流程。
-
-## 示例
-
-下面我们通过一个 vue 示例看看前端工程化实现。
-
-### 初始化
-
-首先，我们通过 vue 提供的手脚架创建并初始化项目
+### 项目初始化
 
 ```shell
 npm create vue@latest
 ```
 
-![](https://r2.jimi1126.cn/img/2024/09/6fa9e514a0ca566dcc071ea2f3cb5aa1.png)
+脚手架已经集成了 ESLint、Prettier、Vite、vitest 的可选项，勾选后即可获得一套可用的工程化配置。
 
-安装依赖并启动
+### 模块化
 
-```shell
-npm i && npm run dev
-```
-
-好了，现在我们已经实现了前端工程化了。是的 vue 框架里面已经集成了一系列工程化工具，使得我们的项目支持模块化、组件化、规范化、自动化开发。
-
-那么 vue 做了什么？又集成了什么呢？
-
-### ES6
-
-通过设置 package.json 中 type=“module”定义项目使用 ESM 规范，实现 js 模块化
-
-![](https://r2.jimi1126.cn/img/2024/09/a50b4ed7160a8c6959a785e474638465.png)
-
-### css scoped、css modules
-
-vue 实现 css 模块化有两种方式，一种是使用组件作用域 CSS，当 style 标签带有 scoped attribute 的时候，它的 CSS 只会影响当前组件的元素，和 Shadow DOM 中的样式封装类似。它的实现方式是通过 PostCSS 给声明了 scoped 的样式中选择器命中的元素添加一个自定义属性，再通过属性选择器实现作用域隔离样式的效果。
-
-```css
-<style>
-.example[data-v-f3f3eg9] {
-  color: red;
-}
-</style>
-
-<template>
-  <div class="example" data-v-f3f3eg9>hi</div>
-</template>
-```
-
-另一种则是 CSS Modules，一个 &lt;style module> 标签会被编译为 CSS Modules 并且将生成的 CSS class 作为 $style 对象暴露给组件：
-
-```css
-<template>
-  <p :class="$style.red">This should be red</p>
-</template>
-
-<style module>
-.red {
-  color: red;
-}
-</style>
-```
-
-vue 默认使用 scoped 方式，而要启用 css modules 需要在插件 vite-plugin-vue 额外的配置。
-
-### 资源模块化
-
-vue 使用 vite 作为构建、打包工具，使得静态资源可以像模块一样通过 import 引入，以此来管理项目对静态资源的依赖。
-
-```js
-import imgUrl from './img.png'; // imgUrl 在开发时会是 /img.png，在生产构建后会是 /assets/img.2d8efhg.png
-document.getElementById('hero-img').src = imgUrl;
-```
+- **JS**：`package.json` 中 `type: "module"` 开启 ESM
+- **CSS**：`<style scoped>` 通过 PostCSS 给元素加 `data-v-xxx` 属性实现样式隔离；需要更彻底的隔离可使用 CSS Modules
+- **静态资源**：Vite 支持 `import imgUrl from './img.png'` 直接引用，构建时自动处理路径和哈希
 
 ### 组件化
 
-Vue 实现了自己的组件模型，使我们可以在每个组件内封装自定义内容与逻辑。一般地，一个 vue 页面就是一个巨大的组件，然后由上自下拆分出一个个独立结构（dom）、独立表现（css）、独立行为（js）的组件。可以看成是层层嵌套的树状结构：
+Vue 的组件模型是树状结构——页面是根组件，向下拆分为功能组件，再拆为基础组件。每个 `.vue` 文件是一个独立单元：
 
-![](https://r2.jimi1126.cn/img/2024/09/e8bc0631911fee11197c3ad0c52aa29d.png)
+- 有自己的状态和行为
+- 通过 props 接收输入，通过 emits 输出变更
+- 可以被单独测试和复用
 
-### 规范化
-
-我们可以看到 vue 项目已经有了良好的目录结构了，我们可以遵循它。
-
-![](https://r2.jimi1126.cn/img/2024/09/581a27c6b30cdbf1d351f34bd5aa3719.png)
-
-从项目的初始化流程可以看到，我们可以集成 eslint、prettier 等。然后选择（或自己制定）我们的代码规范，通过 eslint 做代码质量检测、prettier 做代码格式工具。
-
-### 自动化
-
-1. **编译、打包**：通过 vite 实现自动化编译与打包；
-2. **测试**：通过 vitest 我们只要创建测试集即可实现自动化测试，还有 cypress 能够实现 vue 的视图表现测试，与 vitest 一样创建测试集即可实现自动化测试。
-
-### 通过[husky](https://typicode.github.io/husky/)与[commitlint](https://commitlint.js.org/)做提交校验
-
-安装 husky
+### 提交规范：husky + commitlint
 
 ```shell
 npm install --save-dev husky
 npx husky init
 ```
 
-husky 是一个 Git hooks 工具，它提供了一系列 git 钩子，当初始化完成后，我们可以看到在项目根目录下生成了一个.husky 目录，并在 package.json 添加了一个运行脚本配置。
-
-![](https://r2.jimi1126.cn/img/2024/09/3bcd0cf4106aaf0e4705e1add7ae666f.png)
-
-现在我们修改.husky 下面的 pre-commit 文件为 npm run lint，然后提交一个更改
-
-![](https://r2.jimi1126.cn/img/2024/09/8766feab7a0da88b148a3c3800b3db89.png)
-
-可以看到，变更在 commit 仓库之前触发了 pre-commit 钩子，执行了 npm run lint。
-
-安装 commitlint，并搭配 Angular 的 commit 规范
+在 `.husky/pre-commit` 中配置 `npm run lint`，每次提交前自动执行代码检查。
 
 ```shell
 npm i @commitlint/config-conventional @commitlint/cli -D
 ```
 
-然后在.husky 下添加 commit-msg 钩子文件，并写入：npx --no-install commitlint --edit "$1"，添加配置文件.commitlintrc.json
+创建 `.commitlintrc.json`：
 
 ```json
 { "extends": ["@commitlint/config-conventional"] }
 ```
 
-现在我们提交一个 abc 的变更，会提示我们 commit 不规范
+在 `.husky/commit-msg` 中写入：
 
-![](https://r2.jimi1126.cn/img/2024/09/f2a23d74e5f9930facba22c104405e77.png)
+```
+npx --no-install commitlint --edit "$1"
+```
 
-改为 chore: abc 就可以。
+此后提交信息必须符合约定格式（`feat:`、`fix:`、`chore:` 等），不规范则拒绝提交。
 
-### CI/CD
+### CI/CD：GitHub Actions
 
-CI（Continuous Integration，持续集成）/CD（Continuous Delivery，持续交付/Continuous Deployment，持续部署）属于 DevOps 的概念，指将传统开发过程中的代码构建、测试、部署以及基础设施配置等一系列流程的人工干预转变为自动化。
-
-持续集成（CI）是指自动且频繁地将代码更改集成到共享源代码存储库中的做法。持续部署（CD）是一个由两部分组成的过程，涉及代码更改的集成、测试和交付。持续交付不会自动部署到生产环境，持续部署则会自动将更新发布到生产环境。
-
-CI 始终是指持续集成，这是一种面向开发人员的自动化流程，有助于更频繁地将代码更改合并回共享分支或“主干”。进行这些更新时，会触发测试步骤的自动执行，以确保合并代码更改的可靠性。
-
-CI/CD 中的“CD”指的是持续交付和/或持续部署，这些相关概念有时会交叉使用。二者均与管道中的更多阶段的自动化相关，但有时会分开使用，以说明自动化的程度。选择持续交付还是持续部署取决于开发团队和运维团队的风险承受能力及具体需求。
-
-#### 通过 GitHub Actions 实现 CI/CD
-
-我们通过 Github Actions 实现代码合并或推送到主分支，dependabot 机器人升级依赖等动作，会自动触发测试和发布版本等一系列流程。
-
-在项目根目录创建.github/workflows 文件夹，然后在里面新建 ci.yml 文件和 cd.yml 文件
-
-在 ci.yml 文件中写入：
+在 `.github/workflows/ci.yml` 中配置自动测试：
 
 ```yml
 name: CI
 
 on:
   push:
-    branches:
-      - '**'
+    branches: ['**']
   pull_request:
-    branches:
-      - '**'
+    branches: ['**']
+
 jobs:
   linter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
       - run: npm ci
       - run: npm run lint
+
   tests:
     needs: linter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
       - run: npm ci
       - run: npm run test:unit
 ```
 
-上面配置大概意思就是，监听所有分支的 push 和 pull_request 动作，自动执行 linter 和 tests 任务。
+所有分支的 push 和 PR 都会触发 lint 和 test。tests 依赖 linter 通过后执行。
 
-现在我们将代码推送到 GitHub 上面，在 Actions 页签下面就可以看到我们的 CI 脚本运行了，正在对我们推送的变更做自动化校验与测试了。
-
-![](https://r2.jimi1126.cn/img/2024/09/194fa3d96ca5f1ab5eec22e4c803a35c.png)
-
-在 cd.yml 文件写入：
+`cd.yml` 负责部署——构建完成后通过 SSH 将产物推送到服务器：
 
 ```yml
 name: CD
 
 on:
   push:
-    branches:
-      - 'master'
-  pull_request:
-    branches:
-      - 'master'
+    branches: ['master']
+
 jobs:
   deploy:
     needs: ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
-      - name: Strict Install dependencies
-        run: npm ci --ignore-scripts
-      - name: Run build task
-        run: npm run build
-      - name: deploy pipelines
+          node-version: 20
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: deploy
         uses: cross-the-world/ssh-scp-ssh-pipelines@latest
         with:
           host: ${{ secrets.DC_HOST }}
           user: ${{ secrets.DC_USER }}
           pass: ${{ secrets.DC_PASS }}
-          scp: |
-            ./dist/* => /www/wwwroot/web/vue/test
+          scp: './dist/* => /www/wwwroot/app/'
           last_ssh: |
-            nginx -t
-            nginx -s reload
+            nginx -t && nginx -s reload
 ```
 
-上面配置大概意思就是，监听所有主分支的 push 和 pull_request 动作，在 ci 结束后进行部署，通过 ssh-scp-ssh-pipelines 将部署文件推送到服务器上，如果还需要重启服务等操作可以在 last_ssh 中配置上需要执行的指令。
+敏感信息（HOST、USER、PASS）通过 GitHub Secrets 配置，不写入代码仓库。
 
-此外 DC_HOST、DC_USER、DC_PASS 需要在 GitHub 上做配置。
+## 小结
 
-![](https://r2.jimi1126.cn/img/2024/09/ef8d41f3f96e2e8cfce6797f270c8d48.png)
-
-## 结语
-
-篇幅、文笔有限，许多的细节没有体现出来。前端工程化是一个庞大的架构，需要我们深入了解，不断实践，以此寻找最佳实现。文中有错漏之处，欢迎指出与交流。
-
-> 参考
-> https://es6.ruanyifeng.com/#docs/module > https://juejin.cn/post/6971812117993226248#heading-2 > https://xiangzhihong.blog.csdn.net/article/details/53195926 > https://segmentfault.com/a/1190000039089483#item-4-5 > https://www.redhat.com/zh/topics/devops/what-is-ci-cd > https://docs.github.com/zh/actions
+前端工程化的本质不是配配置文件，而是建立一套可复制的交付标准。模块化管代码结构，组件化管 UI 复用，规范化管协作约束，自动化管流程效率——四个维度到位，项目才能真正规模化。

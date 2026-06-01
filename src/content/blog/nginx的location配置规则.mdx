@@ -1,148 +1,77 @@
 export const metadata = {
-  title: "nginx的location配置规则",
-  description: "nginx的location有哪些规则？",
+  title: "nginx location 配置规则",
+  description: "location 匹配优先级和常见配置陷阱：为什么配了规则不生效、为什么会重定向循环",
   date: "2023-11-05",
-  tags: ["Nginx", "Nginx HTTP", "Nginx location"]
+  tags: ["nginx", "location", "配置"]
 };
 
-## 说明
+## 匹配规则
 
-location 的 location 有哪些规则？
+nginx 的 `location` 有六种匹配方式，按优先级从高到低：
 
-1. location = /uri，=开头表示精确匹配，只有完全匹配上才能生效；
-2. location ^~ /uri，^~ 开头对 URL 路径进行前缀匹配，并且在正则之前；
-3. location ~ pattern，~开头表示区分大小写的正则匹配；
-4. location ~* pattern，~*开头表示不区分大小写的正则匹配；
-5. location /uri，不带任何修饰符，也表示前缀匹配，但是在正则匹配之后；
-6. location /，通用匹配，任何未匹配到其它 location 的请求都会匹配到，相当于 switch 中的 default。
+| 优先级 | 修饰符 | 说明 |
+|---|---|---|
+| 1 | `= /uri` | 精确匹配，完全一致才生效 |
+| 2 | `^~ /uri/` | 前缀匹配，匹配后不再检查正则 |
+| 3 | `~ pattern` | 区分大小写的正则匹配 |
+| 4 | `~* pattern` | 不区分大小写的正则匹配 |
+| 5 | `/uri` | 普通前缀匹配，正则匹配失败后生效 |
+| 6 | `/` | 通用匹配，类似 switch 的 default |
 
-> **Warning**:
->
-> - 匹配的顺序是先匹配普通字符串，然后再匹配正则表达式；
-> - 一般情况下，匹配成功了普通字符串 location 后还会进行正则表达式 location 匹配；
-> - 优先级：(location =) > (location 完整路径) > (location ^~ 路径) > (location ~,~\* 正则顺序) > (location /uri 部分起始路径) > (/)
+核心规则：**先匹配普通字符串，再匹配正则，但 `^~` 可以阻断正则匹配**。
 
 ## 示例
 
-1. **=：精确匹配**
+`= /api` — 精确匹配：
+```
+匹配: /api, /api?page=1
+不匹配: /api/, /api/user
+```
 
-```shell
-server {
-    server_name baidu.com
-　　location = /abc {
-　　　　……
-　　}
+`^~ /static/` — 前缀匹配，阻断正则：
+```
+匹配: /static/css/main.css
+不匹配: /staticfile.txt
+```
+
+`~ \.php$` — 区分大小写正则：
+```
+匹配: /index.php
+不匹配: /index.PHP
+```
+
+`/api` — 普通前缀，低优先级：
+```
+匹配: /api, /api/user
+但如果存在正则匹配成功，该规则不生效
+```
+
+## 踩坑记录
+
+**1. 配置了 location 但不生效**
+
+最常见的原因：被更高优先级的规则抢了。比如你配了 `location /api`，但前面有个 `location ~ \.php$` 匹配了你的 `/api/index.php` 请求。排查方法：检查所有 location 块的优先级，普通前缀匹配在正则之后。
+
+**2. SPA 的 try_files 导致重定向循环**
+
+```
+location / {
+    try_files $uri $uri/ /index.html;
 }
 ```
 
-```js
-// match
-http://baidu.com/abc
-http://baidu.com/abc?p1
+如果 `index.html` 不存在或路径拼错，nginx 会不断对 `/index.html` 做内部重定向。解决办法：确保 `root` 路径正确，并且 `/index.html` 确实存在于该路径下。
 
-// mismatch
-http://baidu.com/abc/de
-http://baidu.com/abcde
-```
+**3. 静态资源缓存配置被全局规则覆盖**
 
-2. **^~：最佳匹配**
+```nginx
+location / {
+    # 全局规则
+}
 
-```shell
-server {
-　　server_name baidu.com;
-　　location ^~ /abc/ {
-　　　　……
-　　}
+location ~* \.(css|js|png|jpg)$ {
+    expires 7d;
 }
 ```
 
-```js
-// match
-http://baidu.com/abc/de
-// mismatch
-http://baidu.com/abcde
-```
-
-3. **~ ：区分大小写**
-
-```shell
-server {
-    server_name baidu.com;
-　　location ~ ^/abc$ {
-　　　　……
-　　}
-}
-```
-
-```js
-// match
-http://baidu.com/abc
-http://baidu.com/abc?p1=11&p2=22
-
-// mismatcn
-http://baidu.com/ABC
-http://baidu.com/abc/
-http://baidu.com/abcde
-```
-
-4. **~\* ：不区分大小写**
-
-```shell
-server {
-  server_name baidu.com;
-  location ~* ^/abc$ {
-    ……
-  }
-}
-```
-
-```js
-// match
-http://baidu.com/abc
-http://baidu..com/ABC
-http://baidu..com/abc?p1=11&p2=22
-
-// mismatcn
-http://baidu..com/abc/
-http://baidu..com/abcde
-```
-
-5. **/uri 前缀匹配**
-
-```shell
-server {
-　　server_name baidu.com;
-　　location /abc {
-　　　　……
-　　}
-}
-```
-
-```js
-// match
-http://baidu.com/abc
-http://baidu.com/abc?p1
-http://baidu.com/abc/
-
-// mismatch
-http://baidu.com/bcde
-```
-
-6. **/ 通用匹配**
-
-```shell
-server {
-　　server_name baidu.com;
-　　location / {
-　　　　……
-　　}
-}
-```
-
-```js
-// 任何未匹配到其它location的请求都会匹配
-http://baidu.com/abc
-http://baidu.com/abc?p1
-http://baidu.com/abc/
-http://baidu.com/bcde
-```
+如果 `/` 块中设置了 `add_header`，可能会和静态资源块的 header 冲突。nginx 的 `add_header` 在多层级下会继承而非合并，建议只在需要的地方使用，或使用 `expires` 等独立指令。

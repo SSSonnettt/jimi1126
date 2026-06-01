@@ -1,190 +1,102 @@
 export const metadata = {
-  title: "如何获取免费的SSL证书？",
-  description: "最近在自建网站，在申请下来域名后，想要支持https，所以需要在服务器部署证书。刚好之前阮一峰的周刊有看到免费SSL证书获取，这不是有思路了？不是买不起，而且免费更有性价比！",
+  title: "如何获取免费的SSL证书",
+  description: "acme.sh + Let's Encrypt 免费获取和管理 SSL 证书的完整流程，附 CA 对比和 nginx 配置",
   date: "2024-03-05",
-  tags: ["自建网站", "SSL证书", "https", "acme.sh", "Buypass", "ZeroSSL", "SSL.com", "Google Public CA"]
+  tags: ["SSL", "HTTPS", "acme.sh", "Let's Encrypt", "nginx"]
 };
 
-## 前言
+## 为什么选 acme.sh + Let's Encrypt
 
-最近在自建网站，在申请下来域名后，想要支持 https，所以需要在服务器部署证书。刚好之前阮一峰的周刊有看到免费 SSL 证书获取，这不是有思路了？不是买不起，而且免费更有性价比！
+自建站点需要 HTTPS，免费方案的主流选择是 [acme.sh](https://github.com/acmesh-official/acme.sh) + Let's Encrypt。acme.sh 是一个零依赖的 Bash 脚本，实现了 ACME 协议，支持多 CA、自动续期、多种验证方式。
 
-## acme.sh
+## CA 对比
 
-首先，我们的主角就是[acme.sh](https://github.com/acmesh-official/acme.sh/wiki#1-how-to-install)，这是一个集成了 ACME 客户端协议的 Bash 脚本，按照官方文档说明，我们直接在 Linux 下安装。
+acme.sh 支持五个正式 CA：
 
-### 安装
+| CA | 有效期 | 泛域名 | 限制 |
+|---|---|---|---|
+| Let's Encrypt | 90 天 | 支持 | Rate Limit 较宽松 |
+| Buypass | 180 天 | 不支持 | 最多 5 个域名 |
+| ZeroSSL | 90 天 | 支持 | 有频率限制 |
+| SSL.com | 90 天 | 收费 | 免费版限制较多 |
+| Google Public CA | 90 天 | 支持 | 较新，社区资料少 |
+
+选用 Let's Encrypt：社区资料最多，出问题容易搜到解决方案。
+
+## 安装与配置
 
 ```shell
-# 直接下载
 curl https://get.acme.sh | sh -s email=my@example.com
-# 如果下载不下来，可以通过源码安装，服务器没有装git的话，先下到本地再上传服务器
-git clone https://github.com/acmesh-official/acme.sh.git
-cd acme.sh
-./acme.sh --install -m email=my@example.com
 ```
 
-> **Warning**: 将 email=my@example.com 换成我们自己的邮箱，避免无法收到上游证书的邮件通知，比如 Let's Encrypt 偶尔会错发证书，然后就会邮件通知你，这时候就需要重新签发一次证书了。
+安装完成后会在 `~/.acme.sh/` 下创建目录，并自动添加 cron 任务，每天检测证书到期，到期前自动续期。
 
-### 初始化
-
-把 acme.sh 安装到你的 home 目录下:
-
-```shell
-~/.acme.sh/
-```
-
-重新 Bash
-
-```shell
-source ~/.bashrc
-```
-
-最新版本 acme.sh 会默认开启自动更新，自动为我们创建 cronjob, 每天 0:00 点自动检测所有的证书, 如果快过期了, 需要更新, 则会自动更新证书。如果没有开启，我们可以手动开启与关闭：
-
-```shell
-# 开启
-acme.sh --upgrade --auto-upgrade
-# 关闭
-acme.sh --upgrade --auto-upgrade  0
-```
-
-### 选择默认 CA
-
-目前 acme.sh 支持 5 个正式环境 CA，分别是 Let's Encrypt、Buypass、ZeroSSL、SSL.com 和 Google Public CA，几个 CA 的简单对比：
-
-| 功能     | LE     | Buypass         | ZeroSSL | SSL.com  | Google Public CA |
-| -------- | ------ | --------------- | ------- | -------- | ---------------- |
-| 有效期   | 90 天  | 180 天          | 90 天   | 90 天    | 90 天            |
-| 多域名   | 支持   | 支持，最多 5 个 | 支持    | 收费支持 | 支持             |
-| 泛域名   | 支持   | 不支持          | 支持    | 收费支持 | 支持             |
-| Rate     | Limit  | 有              | 有      | 收费无   | 未知             |
-| GUI      | 管理   | 否              | 否      | 有       | 有               |
-| ECC      | 证书链 | 否              | 否      | 有       | 未知             |
-| 客户支持 | 社区   | 收费            | 收费    | 收费     | 收费             |
-
-默认使用 ZeroSSL，我们可以使用下面命令进行更改：
-
-```shell
-acme.sh --set-default-ca --server letsencrypt|buypass|zerossl|ssl.com|google
-```
-
-这里我选用 Let's Encrypt，切换 CA：
+切换 CA：
 
 ```shell
 acme.sh --set-default-ca --server letsencrypt
 ```
 
-### 生成证书
+## 签发证书
 
-acme.sh 实现了 acme 协议支持的所有验证协议. 一般有两种方式验证: http 和 dns 验证.
-我们这里使用 http 认证方式：
+HTTP 验证方式（需要域名已解析到服务器）：
 
 ```shell
-acme.sh --issue -d mydomain.com --nginx
+acme.sh --issue -d example.com -d www.example.com --nginx
 ```
 
-> **Tip**: 将 mydomain.com 换成我们的服务器的域名，服务器如果是 nginx 服务器与 apache 服务器，acme.sh 都可以智能的从配置中自动完成验证, 不需要指定网站根目录。无论是 apache 还是 nginx 模式, acme.sh 在完成验证之后, 会恢复到之前的状态, 都不会私自更改你本身的配置. 好处是你不用担心配置被搞坏, 也有一个缺点, 你需要自己配置 ssl 的配置, 否则只能成功生成证书, 你的网站还是无法访问 https. 但是为了安全, 你还是自己手动改配置吧.
-但出现控制台出现下图文件，证书就生成了。
-![0ff5732d5cdb375c92f8472e614e88e.png](/file/img/ut-XB--2Jt2Y9fZrAN52e.png)
+`--nginx` 参数让 acme.sh 自动读取 nginx 配置完成验证，验证后恢复原状，不会修改现有配置。也可以使用 DNS 验证（适合泛域名或服务器不可达的场景）：
 
-### copy/安装 证书
+```shell
+acme.sh --issue -d example.com -d '*.example.com' --dns
+```
 
-前面证书生成以后, 接下来需要把证书 copy 到真正需要用它的地方.
-> **Warning**: 注意, 默认生成的证书都放在安装目录下: ~/.acme.sh/, 请不要直接使用此目录下的文件, 例如: 不要直接让 nginx/apache 的配置文件使用这下面的文件. 这里面的文件都是内部使用, 而且目录结构可能会变化.
-正确的使用方法是使用 --install-cert 命令,并指定目标位置, 然后证书文件会被 copy 到相应的位置, 例如:
-Apache example:
+## 安装证书
+
+生成的证书在 `~/.acme.sh/` 下，**不要直接让 nginx 引用这个路径**——它是内部目录，结构可能变动。使用 `--install-cert` 拷贝到指定位置：
 
 ```shell
 acme.sh --install-cert -d example.com \
---key-file       /path/to/keyfile/in/nginx/key.pem  \
---fullchain-file /path/to/fullchain/nginx/cert.pem \
---reloadcmd     "service nginx force-reload"
+  --key-file       /etc/nginx/ssl/example.com.key \
+  --fullchain-file /etc/nginx/ssl/example.com.crt \
+  --reloadcmd      "systemctl reload nginx"
 ```
 
-Nginx example:
+`--reloadcmd` 在证书更新后自动重载 nginx，确保新证书生效。
 
-```shell
-acme.sh --install-cert -d example.com \
---key-file       /path/to/keyfile/in/nginx/key.pem  \
---fullchain-file /path/to/fullchain/nginx/cert.pem \
---reloadcmd     "service nginx force-reload"
-```
+## nginx SSL 配置
 
-我服务器用的是 nginx，所以执行下面指令：
-
-```shell
-acme.sh --install-cert -d example.com \
---key-file       /www/server/nginx/ssl/example.com.key  \
---fullchain-file /www/server/nginx/ssl/example.com.crt \
---ca-file        /www/server/nginx/ssl/example.com.ca.crt \
---reloadcmd     "systemctl restart nginx"
-```
-
-对应的 SSL 证书文件
-
-```shell
-ssl_certificate /www/server/nginx/ssl/example.com.crt;
-ssl_certificate_key /www/server/nginx/ssl/example.com.key;
-ssl_trusted_certificate /www/server/nginx/ssl/example.com.ca.crt;
-```
-
-然后，更新 nginx 的配置，开启 443 端口，可以参考下面配置：
-
-```conf
-  ## START: SSL/HTTPS example.com ###
-  server {
-    #------- Start SSL config with http2 support ----#    #------- Start SSL config with http2 support ----#
-    listen 443 http2 ssl;
+```nginx
+server {
+    listen 443 ssl;
+    http2 on;
     server_name example.com;
-    root /www/wwwroot/com/example;
-    index index.html index.htm index.php;
-    ## ssl on;
-    ssl_certificate /www/server/nginx/ssl/example.com.crt;
-    ssl_certificate_key /www/server/nginx/ssl/example.com.key;
-    ssl_trusted_certificate /www/server/nginx/ssl/example.com.ca.crt;
-    ssl_session_timeout 30m;
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;
-    ssl_session_cache shared:SSL:10m;
-    ## ssl_dhparam /www/server/nginx/ssl/example.com/dhparams.pem;
+
+    ssl_certificate     /etc/nginx/ssl/example.com.crt;
+    ssl_certificate_key /etc/nginx/ssl/example.com.key;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256;
     ssl_prefer_server_ciphers on;
 
-    ## Improves TTFB by using a smaller SSL buffer than the nginx default
-    ssl_buffer_size 8k;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 30m;
 
-    ## Enables OCSP stapling
+    # OCSP Stapling 加速 SSL 握手
     ssl_stapling on;
-    resolver 8.8.8.8;
     ssl_stapling_verify on;
+    resolver 8.8.8.8 valid=300s;
 
-    ## Send header to tell the browser to prefer https to http traffic
-    add_header Strict-Transport-Security max-age=31536000;
-
-    ## SSL logs ##
-    access_log /var/log/nginx/example.com/ssl_access.log;
-    error_log /var/log/nginx/example.com/ssl_error.log;
-    #-------- END SSL config -------##
-
-    # Add rest of your config below like document path and more ##
-
-    location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$ {
-      expires 30d;
-    }
-
-    location ~ .*\.(js|css)?$ {
-      expires 7d;
-    }
-
-    location ~ /\. {
-      deny all;
-    }
-
-  }
+    # HSTS 强制 HTTPS
+    add_header Strict-Transport-Security "max-age=63072000" always;
+}
 ```
 
-> **Warning**: 第 9 到 11 行是证书路径配置。我们需要检查一下 443 端口是否放行，如果是 ECS 服务器需要配置安全组。
+几个要点：
+- 只启用了 TLSv1.2 和 TLSv1.3，TLSv1.0/1.1 已于 2021 年废弃
+- `ssl_ciphers` 仅使用支持前向保密的 AEAD 套件
+- HSTS 头告诉浏览器在两年内（63072000 秒）始终使用 HTTPS，防止降级攻击
 
 ## 验证
 
-最后，我们可以通过在线的 SSL 验证工具[ssllabs.com](https://www.ssllabs.com/ssltest/index.html)验证我们配置是否正常。如果显示是绿色，那么表明我们拥有了一台支持 https 协议的服务器了。
+用 [SSL Labs](https://www.ssllabs.com/ssltest/) 测试证书配置，目标 A+ 评级。

@@ -1,58 +1,55 @@
 export const metadata = {
-  title: "Vue3的definedAsyncComponent注意事项",
-  description: "最近使用 Vue3 的 definedAsyncComponent 宏出现错误：TypeError: Failed to fetch dynamically imported module: http://localhost:4173/pages/drop-components/resume/Blank.vue",
+  title: "Vue3 defineAsyncComponent 动态导入的坑",
+  description: "使用变量路径动态导入组件时，Rollup 无法静态分析导致运行时 404，两种解决方案",
   date: "2024-05-05",
-  tags: ["definedAsyncComponent", "加载异步组件", "dynamic-import-vars", "import.meta.glob"]
+  tags: ["Vue3", "defineAsyncComponent", "动态导入", "import.meta.glob", "Rollup"]
 };
 
 ## 问题
 
-最近使用 Vue3 的 definedAsyncComponent 宏出现错误：
+使用 Vue3 的 `defineAsyncComponent` 通过变量路径动态导入组件，开发环境正常，生产构建后报错：
 
-```shell
-报错：index-BjNzREC-.js:14 TypeError: Failed to fetch dynamically imported module: http://localhost:4173/pages/drop-components/resume/Blank.vue
 ```
-
-原因是我的动态组件想通过变量引入的
+TypeError: Failed to fetch dynamically imported module:
+http://localhost:4173/pages/drop-components/resume/Blank.vue
+```
 
 ```js
-    ...
-    function loadAsyncDropComponent(path: string, cb: Function = () => {}) {
-      const AsyncComp = defineAsyncComponent({
-        // 加载函数
-        loader: () => {
-          const asyncComp = import(path);
-          asyncComp.finally(() => {
-            nextTick(() => {
-              cb && cb();
-            });
-          });
-          return asyncComp as any;
-        },
-
-        // 加载异步组件时使用的组件
-        loadingComponent: LoadingComponent,
-    	...
+const AsyncComp = defineAsyncComponent({
+  loader: () => import(path),
+  loadingComponent: Loading,
+});
 ```
 
-这导致 rollup 无法静态分析这段异步加载。
+## 原因
 
-> https://github.com/rollup/plugins/tree/master/packages/dynamic-import-vars#limitations
+`import(path)` 中 `path` 是运行时变量，Rollup 在构建阶段无法静态分析这个动态路径。它不知道该打包哪些文件，也不知道打包后的 chunk 叫什么名字。
 
-## 解决
+`@rollup/plugin-dynamic-import-vars` 可以缓解这个问题，但它对路径格式有严格要求，且功能有限。
 
-方案一：
-按照 dynamic-import-vars 的格式约束编写路径：
+## 方案一：遵循 dynamic-import-vars 格式约束
+
+`dynamic-import-vars` 要求路径中最多只能有一段动态部分，且必须在**当前目录或其子目录**内：
 
 ```js
 import(`../components/${dir}/${name}.vue`);
 ```
 
-方案二：
-通过 import.meta.glob 函数动态导入，再拿路径去匹配：
+这可以工作，但限制了目录结构，且路径越复杂越容易踩坑。
+
+## 方案二：import.meta.glob（推荐）
+
+Vite 提供的 `import.meta.glob` 在构建时展开所有匹配的文件，返回一个路径到模块的映射：
 
 ```js
-  const modules = import.meta.glob(`../components/**/*.vue`)
-  const AsyncComp = modules[`../components/${dir}/${name}.vue`]()
-  ...
+const modules = import.meta.glob('../components/**/*.vue');
+
+const AsyncComp = modules[`../components/${dir}/${name}.vue`];
+// AsyncComp 是一个返回 Promise<模块> 的函数，直接作为 defineAsyncComponent 的 loader
 ```
+
+构建时 Vite 会将 glob 模式展开为静态的模块映射表，不再依赖运行时路径解析。`AsyncComp()` 直接作为 `defineAsyncComponent` 的 `loader` 使用。
+
+## 小结
+
+动态导入的坑本质上是一个构建时与运行时的信息不对称问题。`import.meta.glob` 用编译期展开绕开了这个限制，是 Vite 项目中最干净的方案。

@@ -1,0 +1,6 @@
+# Minimal wrangler config for Cloudflare Pages (Git integration deployment)
+# This file is required by @opennextjs/cloudflare for building,
+# but actual deployment is handled by Cloudflare Pages Git integration.
+name = "jimi1126"
+pages_build_output_dir = "dist-static"
+compatibility_date = "2025-01-01"

@@ -7,24 +7,24 @@ export default async function Home() {
   const posts = await getBlogPosts();
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 md:px-8 py-20 md:py-28">
+    <div className="mx-auto max-w-[960px] px-6 md:px-8 lg:px-12 py-16 md:py-20 lg:py-28 xl:py-32 2xl:py-36">
       <ScrollAnimate>
-        <h1 className="text-[44px] md:text-[56px] font-extralight tracking-[-0.03em] leading-[1.05] text-foreground mb-2">
+        <h1 className="text-[32px] sm:text-[40px] lg:text-[56px] xl:text-[64px] 2xl:text-[72px] font-extralight tracking-[-0.03em] leading-[1.05] text-foreground mb-2">
           Sonnet
         </h1>
 
-        <div className="flex items-baseline justify-between mb-10">
+        <div className="flex flex-col md:flex-row md:items-baseline md:justify-between mb-10 gap-2 md:gap-0">
           <p className="text-[11px] tracking-[0.2em] text-fg-tertiary shrink-0">
             AI 应用构建者
           </p>
-          <p className="text-[12px] italic font-extralight tracking-[0.04em] text-fg-tertiary text-right ml-8">
+          <p className="text-[12px] italic font-extralight tracking-[0.04em] text-fg-tertiary md:text-right">
             "真正的大师，永远都怀着一颗学徒的心。" —易
           </p>
         </div>
 
         <div className="w-full h-px bg-border mb-8" />
 
-        <p className="text-[14px] leading-[1.8] text-fg-secondary mb-10">
+        <p className="text-[14px] xl:text-[15px] leading-[1.8] text-fg-secondary mb-10">
           一名 AI 应用构建者，主攻 Web 领域的软件开发与 AI 应用落地。为企业与个人提供开发与咨询服务，同时在线上参与开源建设与知识分享。
         </p>
 
@@ -32,7 +32,7 @@ export default async function Home() {
           作品
         </p>
 
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
           {projects.map((project) => (
             <a
               key={project.slug}

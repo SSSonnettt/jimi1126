@@ -10,14 +10,14 @@ const links = [
 export function NavBar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
-      <nav className="mx-auto flex h-14 max-w-[960px] items-center justify-between px-6 md:px-12">
+      <nav className="mx-auto flex h-14 max-w-[960px] items-center justify-between px-6 md:px-8 lg:px-12">
         <Link
           href="/"
           className="text-[12px] font-normal tracking-[0.15em] text-foreground"
         >
           Sonnet
         </Link>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-3 sm:gap-5">
           {links.map((link) => (
             <Link
               key={link.href}

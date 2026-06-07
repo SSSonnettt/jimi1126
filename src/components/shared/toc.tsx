@@ -51,7 +51,7 @@ export function TOC() {
   if (items.length < 2) return null;
 
   return (
-    <nav className="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto">
+    <nav className="max-h-[calc(100vh-8rem)] overflow-y-auto pr-1">
       <p className="text-[10px] tracking-[0.2em] text-fg-tertiary mb-3">
         ON THIS PAGE
       </p>

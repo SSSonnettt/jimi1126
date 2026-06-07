@@ -4,12 +4,12 @@ import { projects } from "@/lib/projects";
 
 export default function WorkPage() {
   return (
-    <div className="mx-auto max-w-[960px] px-6 md:px-12 py-24">
+    <div className="mx-auto max-w-[960px] px-6 md:px-8 lg:px-12 py-20 md:py-24 xl:py-28 2xl:py-32">
       <ScrollAnimate>
         <p className="text-[10px] tracking-[0.2em] text-fg-tertiary mb-2">
           WORK
         </p>
-        <h1 className="text-[28px] md:text-[36px] font-normal tracking-[-0.02em] leading-[1.15] text-foreground mb-4">
+        <h1 className="text-[24px] sm:text-[28px] lg:text-[36px] xl:text-[40px] 2xl:text-[44px] font-normal tracking-[-0.02em] leading-[1.15] text-foreground mb-4">
           精选作品
         </h1>
         <p className="text-[14px] leading-[1.7] text-fg-secondary mb-12">
@@ -30,7 +30,7 @@ export default function WorkPage() {
                 <span className="text-[14px] text-foreground">
                   {project.title}
                 </span>
-                <span className="ml-3 text-[11px] text-fg-tertiary">
+                <span className="md:ml-3 mt-1 md:mt-0 block md:inline text-[11px] text-fg-tertiary">
                   {project.tags.join(" · ")}
                 </span>
               </div>

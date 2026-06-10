@@ -41,34 +41,33 @@ export default async function BlogPostPage({
   return (
     <>
       <HeadingCopy />
-      <div className="mx-auto max-w-[1080px] px-4 md:px-8">
-        <div className="flex gap-12">
-          <article className="flex-1 min-w-0 max-w-[720px] py-20">
-            <Link
-              href="/notes"
-              className="inline-flex items-center gap-1.5 text-[12px] text-fg-tertiary hover:text-fg-secondary mb-12"
-            >
-              <ArrowLeft className="h-3 w-3" /> 返回笔记
-            </Link>
-            <header className="mb-8">
-              <h1 className="text-[28px] md:text-[36px] font-normal tracking-[-0.02em] leading-[1.15] text-foreground">
-                {post.title}
-              </h1>
-              <div className="mt-4 flex items-center gap-3">
-                <time className="text-[12px] text-fg-tertiary">{post.date}</time>
-                {post.tags.map((tag) => (
-                  <span key={tag} className="text-[11px] text-fg-inactive">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </header>
-            <RenderContent slug={slug} format={post.format} />
-          </article>
-          <aside className="hidden lg:block w-[180px] shrink-0 pt-20">
-            <TOC />
-          </aside>
-        </div>
+      <div className="mx-auto max-w-[960px] px-6 md:px-8 lg:px-12">
+        <article className="py-16 md:py-20 xl:py-24 2xl:py-28">
+          <Link
+            href="/notes"
+            className="inline-flex items-center gap-1.5 text-[12px] text-fg-tertiary hover:text-fg-secondary mb-12"
+          >
+            <ArrowLeft className="h-3 w-3" /> 返回笔记
+          </Link>
+          <header className="mb-8">
+            <h1 className="text-[24px] sm:text-[28px] lg:text-[36px] xl:text-[40px] 2xl:text-[44px] font-normal tracking-[-0.02em] leading-[1.15] text-foreground">
+              {post.title}
+            </h1>
+            <div className="mt-4 flex items-center gap-3">
+              <time className="text-[12px] text-fg-tertiary">{post.date}</time>
+              {post.tags.map((tag) => (
+                <span key={tag} className="text-[11px] text-fg-inactive">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </header>
+          <RenderContent slug={slug} format={post.format} />
+        </article>
+
+        <aside className="hidden xl:block fixed left-[calc(50%+500px)] top-24 w-[140px]">
+          <TOC />
+        </aside>
       </div>
     </>
   );
